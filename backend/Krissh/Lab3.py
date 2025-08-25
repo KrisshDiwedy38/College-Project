@@ -56,7 +56,7 @@ season_2024 = merged_df[merged_df["Season"] == 2024]
 pivot_2024 = season_2024.pivot_table(
     index="RaceID", columns="Rainfall", values="Position", aggfunc="mean"
 )
-
+# Heatmap 
 plt.figure(figsize=(10, 6))
 sns.heatmap(pivot_2024, annot=True, cmap="coolwarm", cbar=True, fmt=".1f")
 plt.title("2024 Season: Avg Finishing Position (Rain vs Non-Rain)")
