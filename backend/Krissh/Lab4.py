@@ -14,9 +14,6 @@ conn = sqlite3.connect("data/weather_data.db")
 weather_df = pd.read_sql("SELECT * FROM weather_table", conn)
 conn.close()
 
-# Data Preprocessing
-print("Starting data preprocessing...")
-
 # Check missing values
 print("\nMissing values in race data:")
 print(race_df.isnull().sum())
@@ -43,9 +40,30 @@ for race_id in race_df['RaceID'].unique():
         race_data_sorted['Time(s)'] = race_data_sorted['Time(s)'].interpolate(method='linear')
         race_df.loc[race_mask & finished_mask, 'Time(s)'] = race_data_sorted['Time(s)'].values
 
-# Keep NaN for DNF drivers 
-dnf_mask = race_df['Status'] != 'Finished'
+import re
+
+# Keep NaN for DNF drivers, but preserve times for Finished and Lapped drivers
+dnf_mask = ~race_df['Status'].isin(['Finished', 'Lapped'])
 race_df.loc[dnf_mask, 'Time(s)'] = np.nan
+
+# Handle "+X Lap(s)" status by adding time penalties
+lap_mask = race_df['Status'].str.contains(r'\+\d+\s+Lap', case=False, na=False)
+lap_indices = race_df[lap_mask].index
+
+for idx in lap_indices:
+   status = race_df.loc[idx, 'Status']
+   # Extract number of laps using regex
+   match = re.search(r'\+(\d+)\s+Lap', status, re.IGNORECASE)
+   if match:
+      num_laps = int(match.group(1))
+      penalty_seconds = num_laps * 100
+      
+      # Add penalty to existing time
+      if pd.notna(race_df.loc[idx, 'Time(s)']):
+         race_df.loc[idx, 'Time(s)'] += penalty_seconds
+      else:
+         # If no base time, just set the penalty
+         race_df.loc[idx, 'Time(s)'] = penalty_seconds
 
 # Create useful features
 race_df['Race_Year'] = race_df['RaceID'].str.extract(r'(\d{4})').astype(int)
@@ -81,4 +99,4 @@ print(merged_df.isnull().sum()[merged_df.isnull().sum() > 0])
 
 # Display sample of processed data
 print("\nSample of processed data:")
-print(merged_df.head(10))
+print(merged_df)
