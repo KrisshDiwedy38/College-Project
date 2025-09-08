@@ -3,6 +3,8 @@ import seaborn as sns
 import numpy as np
 import pandas as pd
 import sqlite3
+import re
+
 
 # Load race data from SQLite database
 conn = sqlite3.connect("data/race_data.db")
@@ -31,7 +33,7 @@ race_df['Time_Available'] = ~race_df['Time(s)'].isnull()
 # For finished drivers with missing times, estimate using interpolation
 for race_id in race_df['RaceID'].unique():
     race_mask = race_df['RaceID'] == race_id
-    finished_mask = race_df['Status'] == 'Finished'
+    finished_mask = race_df['Status'] == 'Finished' 
     
     race_data = race_df[race_mask & finished_mask].copy()
     
@@ -39,8 +41,6 @@ for race_id in race_df['RaceID'].unique():
         race_data_sorted = race_data.sort_values('Position')
         race_data_sorted['Time(s)'] = race_data_sorted['Time(s)'].interpolate(method='linear')
         race_df.loc[race_mask & finished_mask, 'Time(s)'] = race_data_sorted['Time(s)'].values
-
-import re
 
 # Keep NaN for DNF drivers, but preserve times for Finished and Lapped drivers
 dnf_mask = ~race_df['Status'].isin(['Finished', 'Lapped'])
