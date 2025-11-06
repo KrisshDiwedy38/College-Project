@@ -7,7 +7,7 @@ from collections import Counter
 
 warnings.filterwarnings('ignore')
 
-from Lab4 import preprocessing
+from backend.Krissh.preprocessing import preprocessing
 
 merged_df = preprocessing()
 

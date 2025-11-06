@@ -4,9 +4,13 @@ import numpy as np
 import pandas as pd
 import sqlite3
 import re
+from datetime import datetime
 import warnings
+
+from update_data import get_recent_data
 warnings.filterwarnings('ignore', category=FutureWarning)
 
+current_year = datetime.now().year
 
 
 # Load race data from SQLite database
@@ -20,6 +24,8 @@ weather_df = pd.read_sql("SELECT * FROM weather_table", conn)
 conn.close()
 
 def preprocessing():
+
+   get_recent_data(current_year)
    # Handle missing Position values 
    max_position = race_df['Position'].max()
    race_df['Position'] = race_df['Position'].fillna(max_position + 1).astype(int)

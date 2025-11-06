@@ -7,7 +7,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 import warnings
 warnings.filterwarnings('ignore')
 
-from .Lab4 import preprocessing
+from .preprocessing import preprocessing
 
 merged_df = preprocessing()
 
