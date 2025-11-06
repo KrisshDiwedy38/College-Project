@@ -22,11 +22,9 @@ conn.close()
 def preprocessing():
    # Handle missing Position values 
    max_position = race_df['Position'].max()
-   race_df['Position'] = race_df['Position'].fillna(max_position + 1)
+   race_df['Position'] = race_df['Position'].fillna(max_position + 1).astype(int)
 
    # Handle missing Time values (483 missing)
-   # Create indicator for time availability
-   race_df['Time_Available'] = ~race_df['Time(s)'].isnull()
 
    # For finished drivers with missing times, estimate using interpolation
    for race_id in race_df['RaceID'].unique():
@@ -63,6 +61,23 @@ def preprocessing():
             # If no base time, just set the penalty
             race_df.loc[idx, 'Time(s)'] = penalty_seconds
 
+
+   # Points given to the racer
+   points_table = {
+      1: 25,
+      2: 18,
+      3: 15,
+      4: 12,
+      5: 10,
+      6: 8,
+      7: 6,
+      8: 4,
+      9: 2,
+      10: 1
+   }
+
+   race_df["Points"] = race_df["Position"].map(points_table).fillna(0).astype(int)
+   
    # Create useful features
    race_df['Race_Year'] = race_df['RaceID'].str.extract(r'(\d{4})').astype(int)
    race_df['Race_Number'] = race_df['RaceID'].str.extract(r'_(\d+)').astype(int)
